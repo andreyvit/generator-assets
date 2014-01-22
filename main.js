@@ -1292,6 +1292,12 @@
                             width: component.padto.width.value - (pixmap.width + padding.left + padding.right),
                             height: component.padto.height.value - (pixmap.height + padding.top + padding.bottom)
                         };
+                        if (extra.width > 0) {
+                            extraPadding.width += extra.width;
+                        }
+                        if (extra.height > 0) {
+                            extraPadding.height += extra.height;
+                        }
                     }
 
                     var total, remainder;
