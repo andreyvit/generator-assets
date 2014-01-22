@@ -446,6 +446,8 @@
             }
 
             component2x.file = component.file.replace(/(\.\w+)$/i, "@2x$1");
+            component2x.padToMultipleOf = { width: 2, height: 2 };
+
             return [component1x, component2x];
         }
     }
@@ -1283,20 +1285,41 @@
                         padding.top    += component.pad.top.value;
                         padding.bottom += component.pad.bottom.value;
                     }
+
+                    var extraPadding = { width: 0, height: 0 };
                     if (component.padto) {
                         var extra = {
                             width: component.padto.width.value - (pixmap.width + padding.left + padding.right),
                             height: component.padto.height.value - (pixmap.height + padding.top + padding.bottom)
                         };
-                        if (extra.width > 0) {
-                            padding.left += Math.floor(extra.width / 2);
-                            padding.right += Math.ceil(extra.width / 2);
-                        }
-                        if (extra.height > 0) {
-                            padding.top += Math.floor(extra.height / 2);
-                            padding.bottom += Math.ceil(extra.height / 2);
+                    }
+
+                    var total, remainder;
+                    if (component.padToMultipleOf && component.padToMultipleOf.width > 1) {
+                        total = pixmap.width + padding.left + padding.right + extraPadding.width;
+                        remainder = total % component.padToMultipleOf.width;
+                        if (remainder > 0) {
+                            extraPadding.width += (component.padToMultipleOf.width - remainder);
                         }
                     }
+                    if (component.padToMultipleOf && component.padToMultipleOf.height > 1) {
+                        total = pixmap.height + padding.top + padding.bottom + extraPadding.height;
+                        remainder = total % component.padToMultipleOf.height;
+                        if (remainder > 0) {
+                            extraPadding.height += (component.padToMultipleOf.height - remainder);
+                        }
+                    }
+
+                    // distribute the extra padding; TODO: add padAlign/padFrom option to specify the alignment
+                    if (extraPadding.width > 0) {
+                        padding.left += Math.floor(extraPadding.width / 2);
+                        padding.right += Math.ceil(extraPadding.width / 2);
+                    }
+                    if (extraPadding.height > 0) {
+                        padding.top += Math.floor(extraPadding.height / 2);
+                        padding.bottom += Math.ceil(extraPadding.height / 2);
+                    }
+
                     return createLayerImage(pixmap, component.file, {
                         quality: component.quality,
                         format:  component.extension,
