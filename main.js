@@ -1337,6 +1337,10 @@
         _generator = generator;
         _config = config;
 
+        console.log("INSTALLING SHIM");
+        require("./lib/getPixmapBoundsShim.js").install(generator);
+
+
         console.log("initializing generator-assets plugin with config %j", _config);
 
         // TODO: Much of this initialization is currently temporary. Once
