@@ -420,10 +420,55 @@
             reportError(component.error);
         }
     }
+
+    function splitComponent(component) {
+        if (component.ios) {
+            var component1x = Object.create(component);
+            var component2x = Object.create(component);
+            component1x.ios = component2x.ios = false;
+
+            component1x.scale = (component.scale || 1.0) / 2;
+
+            if (component.pad) {
+                component1x.pad = {
+                    left:   { value: Math.floor(component.pad.left.value / 2) },
+                    right:  { value: Math.floor(component.pad.right.value / 2) },
+                    top:    { value: Math.floor(component.pad.top.value / 2) },
+                    bottom: { value: Math.floor(component.pad.bottom.value / 2) },
+                };
+            }
+
+            if (component.padto) {
+                component1x.padto = {
+                    width:  { value: Math.floor(component.padto.width.value / 2) },
+                    height: { value: Math.floor(component.padto.height.value / 2) },
+                };
+            }
+
+            component2x.file = component.file.replace(/(\.\w+)$/i, "@2x$1");
+            return [component1x, component2x];
+        }
+    }
+
+    function rearrangeComponents(components) {
+        // the components array is mutated during the iteration, so use a custom loop
+        var i = 0;
+        while (i < components.length) {
+            var replacements = splitComponent(components[i]);
+            if (typeof replacements !== "undefined") {
+                components.splice.apply(components, [i, 1].concat(replacements));
+            } else {
+                ++i;
+            }
+        }
+        return components;
+    }
     
     function analyzeLayerName(layerName) {
         var components = typeof(layerName) === "string" ? parseLayerName(layerName) : [],
             errors = [];
+
+        components = rearrangeComponents(components);
 
         var validFileComponents = components.filter(function (component) {
             if (!component.file) {

@@ -189,6 +189,9 @@
                 [{ name: "100x80 foo.png iOS", file: "foo.png", extension: "png",
                         width: 100, height: 80, ios: true }],
 
+            "foo.png iOS":
+                [{ name: "foo.png iOS", file: "foo.png", extension: "png", ios: true }],
+
             "100x80 foo.png pad=10:20":
                 [{ name: "100x80 foo.png pad=10:20", file: "foo.png", extension: "png",
                         width: 100, height: 80,
