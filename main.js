@@ -173,9 +173,9 @@
             name: fileSpec
         };
         
-        /* jshint maxlen: 160 */
-        var exp = /^((((\d+|\d*\.\d+)(?:([a-z]{2}) )?|\?) *x *((\d+|\d*\.\d+)(?:([a-z]{2}) *)?|\?) +)|((\d+)% *))?(.+\.([a-z0-9]*[a-z]))(\-?(\d+%?))?$/i;
         
+        /* jshint maxlen: 220 */
+        var exp = /^((((\d+|\d*\.\d+)(?:([a-z]{2}) )?|\?) *x *((\d+|\d*\.\d+)(?:([a-z]{2}) *)?|\?) +)|((\d+)% *))?(.+\.([a-z0-9]*[a-z]))(\-?(\d+%?))?((?: *#[a-z-][a-z0-9-]*)*)((?: +[a-z-][a-z0-9-]*(?:=\S*)?)*)$/i;
         /* jshint maxlen: 120 */
         
         var match = fileSpec.match(exp);
@@ -195,6 +195,7 @@
         // 12 - file extension
         // 13 - quality match string
         // 14 - quality number
+        // 16 - options like "ios" or "pad=xxx"
 
         if (match) {
             result.file      = match[11];
@@ -216,6 +217,24 @@
                     result.height = parseFloat(match[7]);
                     if (typeof match[8] !== "undefined") {
                         result.heightUnit = match[8];
+                    }
+                }
+            }
+            if (match[16]) {
+                var options = match[16].split(/\s+/);
+                for (var i = 0; i < options.length; i++) {
+                    var option = options[i].toLowerCase();
+                    if (option.length > 0) {
+                        var pos = option.indexOf("=");
+                        var name, value;
+                        if (pos >= 0) {
+                            name = option.substr(0, pos);
+                            value = option.substr(pos + 1);
+                        } else {
+                            name = option;
+                            value = true;
+                        }
+                        result[name] = value;
                     }
                 }
             }

@@ -185,6 +185,14 @@
             "3.4in x 5.6.7in foo.png":
                 [{ name: "3.4in x 5.6.7in foo.png", file: "3.4in x 5.6.7in foo.png", extension: "png" }],
 
+            "100x80 foo.png iOS":
+                [{ name: "100x80 foo.png iOS", file: "foo.png", extension: "png",
+                        width: 100, height: 80, ios: true }],
+
+            "100x80 foo.png pad=10x20":
+                [{ name: "100x80 foo.png pad=10x20", file: "foo.png", extension: "png",
+                        width: 100, height: 80, pad: "10x20" }],
+
             // Comma used as place value separator
             "3,4in x 5,6in foo.png":
                 [{ name: "3" },
