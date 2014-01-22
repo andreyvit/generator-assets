@@ -60,6 +60,81 @@
         MAX_SIMULTANEOUS_UPDATES = 50,
         MAX_DIR_RENAME_ATTEMPTS = 1000;
 
+    function isUndefined(value) {
+        return typeof value === "undefined";
+    }
+
+    // parsing functions accept a string and return the parsed value or undefined in case of error
+    var TYPES = {
+        boolean: function (value) {
+            if (typeof value === "boolean") {
+                return value;
+            } else if (typeof value === "string") {
+                value = value.toLowerCase();
+                if (value === "true" || value === "yes" || value === "on") {
+                    return true;
+                } else if (value === "false" || value === "no" || value === "off") {
+                    return false;
+                }
+            }
+        },
+        dimension: function (value) {
+            if (typeof value !== "string") {
+                return;
+            }
+            var match;
+            if (!!(match = value.match(/^(\d+) *(px)$/))) {
+                return { value: +match[1], units: match[2] };
+            } else if (!!(match = value.match(/^(\d+)$/))) {
+                return { value: +match[1] };
+            }
+        },
+        size: function (value) {
+            if (typeof value !== "string") {
+                return;
+            }
+            var components = value.split(/x(?= *\d)/).map(TYPES.dimension);
+            if (components.some(isUndefined)) {
+                return;
+            }
+            if (components.length === 2) {
+                if (components[0].units && !components[1].units) {
+                    components[1].units = components[0].units;
+                } else if (components[1].units && !components[0].units) {
+                    components[0].units = components[1].units;
+                }
+
+                return { width: components[0], height: components[1] };
+            } else if (components.length === 1) {
+                return { width: components[0], height: components[0] };
+            }
+        },
+        padding: function (value) {
+            if (typeof value !== "string") {
+                return;
+            }
+            var components = value.split(":").map(TYPES.dimension);
+            if (components.some(isUndefined)) {
+                return;
+            }
+            if (components.length === 4) {
+                return { top: components[0], right: components[1], bottom: components[2], left: components[3] };
+            } else if (components.length === 3) {
+                return { top: components[0], right: components[1], bottom: components[2], left: components[1] };
+            } else if (components.length === 2) {
+                return { top: components[0], right: components[1], bottom: components[0], left: components[1] };
+            } else if (components.length === 1) {
+                return { top: components[0], right: components[0], bottom: components[0], left: components[0] };
+            }
+        },
+    };
+
+    var OPTIONS = {
+        ios: { parse: TYPES.boolean },
+        pad: { parse: TYPES.padding },
+        padto: { parse: TYPES.size },
+    };
+
     // TODO: Once we get the layer change management/updating right, we should add a
     // big comment at the top of this file explaining how this all works. In particular
     // we should explain what contexts are, and how we manage scheduling updates.
@@ -222,6 +297,7 @@
             }
             if (match[16]) {
                 var options = match[16].split(/\s+/);
+                var submatch;
                 for (var i = 0; i < options.length; i++) {
                     var option = options[i].toLowerCase();
                     if (option.length > 0) {
@@ -233,6 +309,18 @@
                         } else {
                             name = option;
                             value = true;
+                        }
+                        if (OPTIONS.hasOwnProperty(name)) {
+                            value = OPTIONS[name].parse(value);
+                            if (typeof value !== "undefined") {
+                                result[name] = value;
+                            } else {
+                                result.error = "Invalid value of option '" + name + "'";
+                                continue;
+                            }
+                        } else {
+                            result.error = "Unknown option '" + name + "'";
+                            continue;
                         }
                         result[name] = value;
                     }
@@ -326,6 +414,10 @@
                     "\""
                 );
             }
+        }
+
+        if (component.error) {
+            reportError(component.error);
         }
     }
     
@@ -1139,6 +1231,26 @@
                     var padding;
                     if (pixmapSettings.getPadding) {
                         padding = pixmapSettings.getPadding(pixmap.width, pixmap.height);
+                    }
+                    if (component.pad) {
+                        padding.left   += component.pad.left.value;
+                        padding.right  += component.pad.right.value;
+                        padding.top    += component.pad.top.value;
+                        padding.bottom += component.pad.bottom.value;
+                    }
+                    if (component.padto) {
+                        var extra = {
+                            width: component.padto.width.value - (pixmap.width + padding.left + padding.right),
+                            height: component.padto.height.value - (pixmap.height + padding.top + padding.bottom)
+                        };
+                        if (extra.width > 0) {
+                            padding.left += Math.floor(extra.width / 2);
+                            padding.right += Math.ceil(extra.width / 2);
+                        }
+                        if (extra.height > 0) {
+                            padding.top += Math.floor(extra.height / 2);
+                            padding.bottom += Math.ceil(extra.height / 2);
+                        }
                     }
                     return createLayerImage(pixmap, component.file, {
                         quality: component.quality,

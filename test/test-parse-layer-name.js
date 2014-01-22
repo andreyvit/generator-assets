@@ -189,9 +189,15 @@
                 [{ name: "100x80 foo.png iOS", file: "foo.png", extension: "png",
                         width: 100, height: 80, ios: true }],
 
-            "100x80 foo.png pad=10x20":
-                [{ name: "100x80 foo.png pad=10x20", file: "foo.png", extension: "png",
-                        width: 100, height: 80, pad: "10x20" }],
+            "100x80 foo.png pad=10:20":
+                [{ name: "100x80 foo.png pad=10:20", file: "foo.png", extension: "png",
+                        width: 100, height: 80,
+                        pad: { top: {value: 10}, right: {value: 20}, bottom: {value: 10}, left: {value: 20}} }],
+
+            "100x80 foo.png padTo=10x20":
+                [{ name: "100x80 foo.png padTo=10x20", file: "foo.png", extension: "png",
+                        width: 100, height: 80,
+                        padto: { width: {value: 10}, height: {value: 20} } }],
 
             // Comma used as place value separator
             "3,4in x 5,6in foo.png":
